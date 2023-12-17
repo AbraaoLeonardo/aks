@@ -1,0 +1,34 @@
+# Logar na conta da azure
+az login
+
+# Variaveis
+rg=rg-for-aks
+local=brazilsouth
+aks=aks-cli
+acr=acr-cli
+
+# Criando o Resource Group
+az group create -n $rg -l $local
+
+# Criando um cluster no aks
+az aks create -g $rg -n aks
+
+# Verificando o yaml para criar o aks
+az aks list -o yaml
+
+# Verificando as informações sobre o aks
+az aks show -n $aks -g $rg
+
+# Criando um ACR
+az acr create -n $acr -g $rg --sku Basic
+
+# atachando o ACR ao AKS
+az aks update -g $rg -n $aks --attach-acr $acr
+
+# Podemos parar, iniciar ou deletar um aks
+az aks stop -n $aks -g $rg
+az aks start -n $aks -g $rg
+az aks delete -n $aks -g $rg
+
+# Agora, vamos deletar o resource group
+az group delete -n $rg
