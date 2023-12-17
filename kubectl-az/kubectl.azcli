@@ -1,0 +1,37 @@
+# logar no az
+az login
+
+# Variable
+rg=rg-kubectl
+local=brazilsouth
+aks=aks-basic
+sku=Standard_B2s
+
+# Instalar o kubectl
+sudo az aks install-cli
+
+# Grupo de registro
+az group create -n $rg -l $local
+
+# Criando o aks
+az aks create -n $aks -g $rg --node-count 1 --node-vm-size $sku --generate-ssh-keys
+
+# Pegando as credenciais para conseguir usar o kubectl
+az aks get-credentials -g $rg -n $aks
+
+# pegar todos os clusters
+kubectl get all
+kubectl get all --all-namespaces
+kubectl get pods -A
+kubectl get node
+kubectl get pod
+
+# Criar um pod
+kubectl run nginx --image=nginx
+kubectl describe pod nginx
+
+# Destruir um aks
+az aks delete -n $aks -g $rg
+
+# Destruindo o resource group
+az group delete -n $rg
