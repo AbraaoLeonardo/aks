@@ -1,0 +1,14 @@
+# Logar na azure
+az login
+
+# build da imagem.
+docker buld . -t acr-img
+
+# Logar no acr
+az acr login --name primeiroacr
+
+# Adicionando uma tag no container
+docker tag acr-img primeiroacr.azurecr.io/acr-img
+
+# Push da imagem
+docker push primeiroacr.azurecr.io/acr-img

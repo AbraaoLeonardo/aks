@@ -1,0 +1,77 @@
+# Loge na sua conta da azure no terminal. Caso não tenha, poderá estar criando, ela é gratuita.
+az login
+
+# Variaveis. Para não ficar repetindo o nome e diminuindo o risco de digitar errado o nome do recurso
+# rg = registery group. Todos os recursos do azure devem estar dentro de um registery group
+rg=rg-acr
+
+# local. Region onde se encontra o recurso
+local=eastus
+
+# Azure Container Registery. Um dockerhub do azure
+acr=acrcontainersapps
+
+# nome da imagem do container
+img=site-html
+
+# Nome do plano do webservice
+appplan=plano-container-azure
+
+# Tipo do appservice
+appservice=appservicecontainerapps
+
+# Criar Grupo de Recursos
+az group create -n $rg -l $local
+
+# Verificar se  o nome esta em uso. Como demora um pouco até o recurso seja criado, podemos utilizar o comando para verificar
+az acr check-name -n $acr
+
+# Criar Azure Container Registry
+# --sku para selecionar a licença. Estamos utilizando a basic pois é gratuita
+az acr create -n $acr -g $rg --sku Basic
+
+# Mostrar Endpoint
+az acr show-endpoints -n $acr
+
+# Habilitar a conta de usuario administrador para o ACR. Para criar um web service é necessário que esteja habilitado
+az acr update -n $acr --admin-enabled true
+
+# Listar os ACRs criados
+az acr list -o table
+
+# Detalhes do ACR
+az acr show -n $acr
+
+# Build do Dockerfile.
+docker build -t $img .
+
+# Tag Imagem local
+docker tag $img $acr.azurecr.io/$img
+
+# Login no ACR. É necessário para conseguir enviar a imagem para o ACR correto, já que em uma organização pode ter varios ACR.
+az acr login --name $acr
+
+# Push da imagem para o ACR
+docker push $acr.azurecr.io/$img
+
+# Listando Repositorios do ACR
+az acr repository list -n $acr
+
+# Mostrar Detalhes do Repositorio
+az acr repository show -n $acr --repository $img
+
+# Criando um Web app
+# Criando o plano. Estamos utilizando a imagem linux, e um SKU S1.
+az appservice plan create -g $rg -n $appplan -l local -sku S1 --is-linux
+
+# Excluir Imagem do Repositorio
+az acr repository delete -n $acr --image $img:latest
+
+# Excluir todos manifestos do Repositorio
+az acr repository delete -n $acr --repository $img
+
+# Excluir ACR Service
+az acr delete -n $acr
+
+# Excluir Grupo de Recurso
+az group delete -n $rg
